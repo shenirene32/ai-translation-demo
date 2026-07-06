@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI翻譯字串管理｜互動流程版</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,"Microsoft JhengHei","Noto Sans TC",sans-serif;background:#f4f6f8;color:#1f2937}
+.top{height:58px;background:#eef3f7;border-bottom:3px solid #f39c12;display:flex;align-items:center;justify-content:space-between;padding:0 24px}
+.title{font-size:23px;font-weight:700}.crumb{font-size:12px;color:#6b7280}
+.page{padding:18px 22px 30px}
+.cards{display:grid;grid-template-columns:180px 180px 220px;gap:12px}
+.card{background:#fff;border:1px solid #d8dee6;border-radius:6px;min-height:76px;padding:13px 15px 11px 18px;position:relative}
+.card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:#3498db;border-radius:6px 0 0 6px}
+.card.orange:before{background:#e67e22}.card.blue:before{background:#2f80ed}.card.purple:before{background:#8e44ad}
+.label{font-size:13px;color:#6b7280;margin-bottom:8px}.value{font-size:20px;font-weight:700}
+.panel{background:#fff;border:1px solid #dde3ea;border-radius:6px}
+.flow{margin-top:12px;padding:11px 14px;background:#fff8e7;border:1px solid #f1dd9b;color:#8a6d1f;border-radius:6px;font-size:13px;line-height:1.6}
+.filter{margin-top:14px;padding:14px}
+.filters{display:grid;grid-template-columns:280px 140px 160px 180px 180px auto auto;gap:12px;align-items:end}
+.field label{display:block;font-size:13px;font-weight:700;color:#374151;margin-bottom:6px}
+.field input,.field select{width:100%;height:38px;border:1px solid #cfd6df;border-radius:4px;background:#fff;padding:0 12px;font-size:14px}
+.btn{border-radius:4px;padding:9px 13px;font-size:14px;border:1px solid #d1d5db;background:#fff;color:#374151;font-weight:700;cursor:pointer;white-space:nowrap}
+.btn.blue{background:#2f80ed;color:#fff;border-color:#2f80ed}.btn.green{color:#22a559;border-color:#64c08b}.btn:hover{filter:brightness(.97)}
+.batch{padding:12px 14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.selected{font-weight:700;color:#2f80ed;background:#eef5ff;border:1px solid #d6e7ff;border-radius:4px;padding:9px 13px}
+.lang-sync{display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-left:1px solid #e5e7eb;padding-left:12px}
+.lang-sync label{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:700;background:#f8fafc;border:1px solid #e5e7eb;border-radius:999px;padding:6px 9px}
+.table-wrap{margin-top:12px;overflow:auto}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+th{background:#d9d9d9;border:1px solid #e5e7eb;padding:11px 8px;font-size:14px;text-align:left}
+td{border:1px solid #eceff3;padding:10px 8px;vertical-align:top;font-size:14px;background:#fff}.lang-cell{cursor:pointer}.lang-cell:hover{background:#eef5ff}
+.c-check{width:48px;text-align:center}.c-src{width:260px}.c-lang{width:320px}.c-op{width:96px}
+input[type=checkbox]{width:18px;height:18px;accent-color:#2f80ed}
+.main{line-height:1.35;margin-bottom:8px}.meta{font-size:12px;color:#6b7280;line-height:1.45}
+.pill{display:inline-flex;border-radius:999px;padding:3px 9px;font-size:12px;font-weight:700}
+.machine{color:#e67e22;background:#fff4e8}.local{color:#2f80ed;background:#edf5ff}.synced{color:#23a35b;background:#e9f7ef}
+.footer{display:flex;justify-content:space-between;align-items:center;padding:12px 8px 14px;font-size:13px;color:#4b5563}
+.mask{position:fixed;inset:0;background:rgba(17,24,39,.28);display:none;align-items:center;justify-content:center;z-index:40}
+.modal{width:660px;background:#fff;border-radius:8px;box-shadow:0 18px 50px rgba(0,0,0,.22);border:1px solid #dfe5ec}
+.modal.large{width:900px}
+.mh{padding:18px 22px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;font-size:18px;font-weight:700}
+.mb{padding:18px 22px;max-height:72vh;overflow:auto}.mf{padding:14px 22px;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.form .fr{display:grid;grid-template-columns:110px 1fr;gap:12px;align-items:start;margin-bottom:12px}.form label{font-size:14px;font-weight:700;color:#374151;padding-top:9px}
+.form input,.form textarea{width:100%;border:1px solid #cfd6df;border-radius:4px;padding:10px;background:#fff}.form textarea{min-height:90px;resize:vertical}.readonly{background:#f3f4f6!important}
+.result-card{border:1px solid #d9dde3;border-radius:8px;padding:18px;background:#fff}.result-card .num{font-size:32px;font-weight:700;margin-top:6px}
+.result-table{width:100%;border-collapse:collapse;margin-top:12px}.result-table th{background:#f3f4f6}.result-table td,.result-table th{border:1px solid #e5e7eb;padding:10px}
+.note{background:#fff8e7;border:1px solid #f1dd9b;color:#8a6d1f;border-radius:4px;padding:12px 14px;font-size:13px;line-height:1.5}
+.toast{position:fixed;right:24px;bottom:24px;background:#111827;color:#fff;padding:13px 18px;border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.22);display:none;z-index:50}
+.filehint{font-size:12px;color:#6b7280;margin-top:8px;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="top"><div class="title">AI翻譯字串管理</div><div class="crumb">Home ＞ AI翻譯字串管理</div></div>
+<div class="page">
+  <div class="cards">
+    <div class="card orange"><div class="label">機翻</div><div class="value" id="machineCount">0</div></div>
+    <div class="card purple"><div class="label">尚未同步</div><div class="value" id="unsyncedCount">0</div></div>
+    <div class="card"><div class="label">最後異動時間</div><div class="value" style="font-size:16px" id="lastUpdate">—</div></div>
+  </div>
+
+  <div class="flow">
+    流程規則：匯入後資料顯示於介面，狀態由「機翻」改為「本地化」；同步流程為勾選資料最前方格子後按「同步所選資料」；若有勾選語系，則只同步指定語系，若未勾選語系，則同步該資料的全部語系。同步前會跳出「確定同步嗎」防呆彈窗；不論目前狀態為「機翻」或「本地化」，同步後狀態都會改為「已同步」。已同步資料再次編輯並儲存後，狀態改回「本地化」。
+  </div>
+
+  <div class="panel filter">
+    <div class="filters">
+      <div class="field"><label>搜尋 原文 / 翻譯</label><input id="keyword" placeholder="請輸入原文或翻譯"></div>
+      <div class="field"><label>語系</label><select id="filterLang" onchange="renderStatusFilter()"><option value="">請選擇</option><option>en</option><option>ja</option><option>vi</option></select></div>
+      <div class="field"><label>狀態</label><select id="statusFilter" disabled><option value="">請先選語系</option></select></div>
+      <div class="field"><label>異動開始時間</label><input id="startTime" type="datetime-local"></div>
+      <div class="field"><label>異動結束時間</label><input id="endTime" type="datetime-local"></div>
+      <button class="btn blue" onclick="runSearch()">查詢</button>
+      <button class="btn" onclick="clearFilters()">清除</button>
+    </div>
+  </div>
+
+  <div class="panel batch">
+    <div class="selected" id="selectedCount">已勾選 0 筆</div>
+    <button class="btn green" onclick="openExport()">匯出</button>
+    <button class="btn green" onclick="openImport()">匯入</button>
+    <button class="btn blue" onclick="confirmSyncSelected()">同步所選資料</button>
+    <button class="btn" onclick="clearSelection()">清除勾選</button>
+    <div class="lang-sync">
+      <span style="font-weight:700;color:#6b7280">同步語系</span>
+      <label><input type="checkbox" class="syncLangPick" value="en">en</label>
+      <label><input type="checkbox" class="syncLangPick" value="ja">ja</label>
+      <label><input type="checkbox" class="syncLangPick" value="vi">vi</label>
+    </div>
+  </div>
+
+  <div class="panel table-wrap">
+    <table>
+      <thead><tr id="thead"></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="footer"><div id="tableInfo"></div><div>10 筆/頁　‹ 上一頁　<span class="btn blue" style="padding:6px 11px">1</span>　下一頁 ›</div></div>
+  </div>
+</div>
+
+<div class="mask" id="mask">
+  <div class="modal" id="modal">
+    <div class="mh"><span id="mtitle"></span><span style="cursor:pointer;color:#6b7280" onclick="closeModal()">✕</span></div>
+    <div class="mb" id="mbody"></div>
+    <div class="mf" id="mfoot"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const languages=["en","ja","vi"];
+const statuses=["機翻","本地化","已同步"];
+const statusClass={"機翻":"machine","本地化":"local","已同步":"synced"};
+let hasSearched=false;
+let pendingSyncAction=null;
+
+let rows=[
+{checked:true,src:"開始遊戲",updated:"2026-05-29T10:00",langs:{en:{text:"Start Game",status:"已同步",updated:"2026-05-29T10:00"},ja:{text:"ゲーム開始",status:"已同步",updated:"2026-05-29T10:05"},vi:{text:"Bắt đầu trò chơi",status:"已同步",updated:"2026-05-29T10:10"}}},
+{checked:true,src:"購買道具",updated:"2026-05-29T11:20",langs:{en:{text:"Buy Item",status:"本地化",updated:"2026-05-29T11:20"},ja:{text:"アイテム購入",status:"機翻",updated:"2026-05-28T09:25"},vi:{text:"Mua vật phẩm",status:"已同步",updated:"2026-05-29T09:30"}}},
+{checked:true,src:"活動說明",updated:"2026-05-28T14:24",langs:{en:{text:"Event Description",status:"機翻",updated:"2026-05-28T14:24"},ja:{text:"イベント説明",status:"機翻",updated:"2026-05-28T14:24"},vi:{text:"Mô tả sự kiện",status:"機翻",updated:"2026-05-28T14:24"}}},
+{checked:false,src:"伺服器繁忙，請稍後再試",updated:"2026-05-29T13:35",langs:{en:{text:"Server is busy, please try again later.",status:"已同步",updated:"2026-05-28T14:00"},ja:{text:"サーバーが混雑しています。後でもう一度お試しください。",status:"本地化",updated:"2026-05-29T13:30"},vi:{text:"Máy chủ đang bận, vui lòng thử lại sau.",status:"已同步",updated:"2026-05-28T14:20"}}}
+];
+
+function toast(msg){let t=document.getElementById("toast");t.innerText=msg;t.style.display="block";setTimeout(()=>t.style.display="none",2200)}
+function shell(title,big=false){document.getElementById("mtitle").innerText=title;document.getElementById("modal").className="modal"+(big?" large":"");document.getElementById("mask").style.display="flex"}
+function closeModal(){document.getElementById("mask").style.display="none";pendingSyncAction=null}
+function nowISO(){let d=new Date();let pad=n=>String(n).padStart(2,"0");return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`}
+function todayName(lang){let d=new Date();let pad=n=>String(n).padStart(2,"0");let half=d.getHours()<12?"上":"下";return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_${half}_${lang}.xls`}
+function pill(s){return `<span class="pill ${statusClass[s]}">${s}</span>`}
+function syncable(s){return s!=="已同步"}
+function rowStatus(r,lang){if(lang)return r.langs[lang].status;let vals=languages.map(l=>r.langs[l].status);if(vals.includes("機翻"))return"機翻";if(vals.includes("本地化"))return"本地化";return"已同步"}
+function statusRank(r){let s=rowStatus(r);return s==="機翻"?0:s==="本地化"?1:2}
+function touch(r,l){let t=nowISO();r.langs[l].updated=t;r.updated=t}
+function counts(){let all=rows.flatMap(r=>languages.map(l=>r.langs[l].status));document.getElementById("machineCount").innerText=all.filter(s=>s==="機翻").length;document.getElementById("unsyncedCount").innerText=all.filter(s=>s!=="已同步").length;document.getElementById("selectedCount").innerText=`已勾選 ${rows.filter(r=>r.checked).length} 筆`;let latest=rows.flatMap(r=>[r.updated,...languages.map(l=>r.langs[l].updated)]).sort().pop();document.getElementById("lastUpdate").innerText=latest?latest.replace("T"," "):"—"}
+function renderStatusFilter(){let lang=document.getElementById("filterLang").value;let sf=document.getElementById("statusFilter");if(!lang){sf.disabled=true;sf.innerHTML='<option value="">請先選語系</option>';return}sf.disabled=false;sf.innerHTML='<option value="">全部</option>'+statuses.map(s=>`<option>${s}</option>`).join("")}
+function cell(r,l){let x=r.langs[l];return `<td class="lang-cell" onclick="editSingle(${rows.indexOf(r)},'${l}')" title="點擊編輯此語系"><div class="main">${x.text||"—"}</div><div class="meta">${pill(x.status)}</div></td>`}
+function render(){document.getElementById("thead").innerHTML=`<th class="c-check"><input type="checkbox" onchange="toggleAll(this.checked)"></th><th class="c-src">原文內容</th>${languages.map(l=>`<th class="c-lang">${l}</th>`).join("")}<th class="c-op">操作</th>`;let kw=document.getElementById("keyword").value.trim().toLowerCase();let fl=document.getElementById("filterLang").value;let sf=document.getElementById("statusFilter").value;let st=document.getElementById("startTime").value;let et=document.getElementById("endTime").value;let data=rows.slice().sort((a,b)=>statusRank(a)-statusRank(b)||a.src.localeCompare(b.src));let filtered=data.filter(r=>{if(!hasSearched)return true;let text=[r.src,...languages.map(l=>r.langs[l].text)].join(" ").toLowerCase();if(kw&&!text.includes(kw))return false;if(fl&&sf&&rowStatus(r,fl)!==sf)return false;if(st||et){let hit=[r.updated,...languages.map(l=>r.langs[l].updated)].some(t=>(!st||t>=st)&&(!et||t<=et));if(!hit)return false}return true});document.getElementById("tbody").innerHTML=filtered.map(r=>`<tr><td class="c-check"><input type="checkbox" ${r.checked?"checked":""} onchange="setChecked(${rows.indexOf(r)},this.checked)"></td><td><div class="main">${r.src}</div></td>${languages.map(l=>cell(r,l)).join("")}<td><button class="btn" onclick="event.stopPropagation();editMulti(${rows.indexOf(r)})">編輯</button></td></tr>`).join("");document.getElementById("tableInfo").innerText=`顯示第 1 至 ${filtered.length} 筆，共 ${filtered.length} 筆`;counts()}
+function runSearch(){hasSearched=true;render();toast("已依條件查詢")}
+function clearFilters(){hasSearched=false;document.getElementById("keyword").value="";document.getElementById("filterLang").value="";document.getElementById("statusFilter").value="";document.getElementById("startTime").value="";document.getElementById("endTime").value="";renderStatusFilter();render();toast("已清除查詢條件")}
+function setChecked(i,v){rows[i].checked=v;counts()}
+function toggleAll(v){rows.forEach(r=>r.checked=v);render()}
+function clearSelection(){rows.forEach(r=>r.checked=false);render()}
+function editSingle(i,l){let r=rows[i],x=r.langs[l];shell(`編輯 ${l} 翻譯`);document.getElementById("mbody").innerHTML=`<div class="form"><div class="fr"><label>原文內容</label><input class="readonly" value="${r.src}" disabled></div><div class="fr"><label>語系</label><input class="readonly" value="${l}" disabled></div><div class="fr"><label>目前狀態</label><input class="readonly" value="${x.status}" disabled></div><div class="fr"><label>翻譯內容</label><textarea id="singleText">${x.text||""}</textarea></div><div class="note">儲存後，該語系狀態會改為「本地化」。</div></div>`;document.getElementById("mfoot").innerHTML=`<button class="btn" onclick="closeModal()">取消</button><button class="btn blue" onclick="saveSingle(${i},'${l}')">儲存</button>`}
+function saveSingle(i,l){let r=rows[i];r.langs[l].text=document.getElementById("singleText").value.trim()||"—";r.langs[l].status="本地化";touch(r,l);closeModal();render();toast("已儲存，狀態已改為本地化")}
+function editMulti(i){let r=rows[i];shell("編輯整筆原文內容",true);document.getElementById("mbody").innerHTML=`<div class="note">可一次編輯同一筆原文內容底下多個語系。只要內容有異動並儲存，該語系狀態會改為「本地化」。</div><div class="form" style="margin-top:14px"><div class="fr"><label>原文內容</label><input class="readonly" value="${r.src}" disabled></div></div><table class="result-table" style="margin-top:12px"><tr><th style="width:90px">語系</th><th>翻譯內容</th><th style="width:140px">目前狀態</th></tr>${languages.map(l=>`<tr><td style="font-weight:700;vertical-align:top;padding-top:18px">${l}</td><td><textarea id="multi_${l}" data-original="${encodeURIComponent(r.langs[l].text||"")}" style="width:100%;min-height:70px;border:1px solid #cfd6df;border-radius:4px;padding:10px;resize:vertical;background:#fff">${r.langs[l].text||""}</textarea></td><td style="vertical-align:top;padding-top:18px">${pill(r.langs[l].status)}</td></tr>`).join("")}</table>`;document.getElementById("mfoot").innerHTML=`<button class="btn" onclick="closeModal()">取消</button><button class="btn blue" onclick="saveMulti(${i})">儲存</button>`}
+function saveMulti(i){let r=rows[i],changed=0;languages.forEach(l=>{let el=document.getElementById("multi_"+l);let old=decodeURIComponent(el.dataset.original);let val=el.value.trim();if(val!==old){r.langs[l].text=val||"—";r.langs[l].status="本地化";touch(r,l);changed++}});closeModal();render();toast(`已儲存 ${changed} 個語系`)}
+function pickedSyncLangs(){return[...document.querySelectorAll(".syncLangPick:checked")].map(x=>x.value)}
+function confirmSyncSelected(){let picked=pickedSyncLangs();let selectedRows=rows.filter(r=>r.checked);if(!selectedRows.length){toast("請先勾選要同步的資料");return}let syncLangs=picked.length?picked:languages;let count=0;selectedRows.forEach(r=>syncLangs.forEach(l=>{if(syncable(r.langs[l].status))count++}));pendingSyncAction=()=>syncSelectedConfirmed(syncLangs);let langText=picked.length?syncLangs.join("、"):"全部語系";shell("同步確認");document.getElementById("mbody").innerHTML=`<div style="font-size:22px;font-weight:700;text-align:center;margin:8px 0 12px">確定同步嗎？</div><div class="note">將同步已勾選資料中，語系為 ${langText} 的資料；不論目前為「機翻」或「本地化」，同步後都會改為「已同步」。</div><div class="result-card" style="text-align:center;margin:16px auto 0;max-width:260px"><div>預計同步總筆數</div><div class="num" style="color:#2563eb">${count}</div></div>`;document.getElementById("mfoot").innerHTML=`<button class="btn" onclick="closeModal()">取消</button><button class="btn blue" onclick="doPendingSync()">確定同步</button>`}
+function doPendingSync(){if(pendingSyncAction)pendingSyncAction()}
+function syncSelectedConfirmed(picked){let count=0;rows.filter(r=>r.checked).forEach(r=>picked.forEach(l=>{if(syncable(r.langs[l].status)){r.langs[l].status="已同步";touch(r,l);count++}}));closeModal();render();showSyncResult(count)}
+function showSyncResult(count){shell("同步結果");document.getElementById("mbody").innerHTML=`<div style="font-size:30px;font-weight:700;color:#16a34a;text-align:center;margin:12px 0 22px">✓ 同步完成</div><div class="result-card" style="text-align:center;margin:0 auto;max-width:260px"><div>同步總筆數</div><div class="num" style="color:#2563eb">${count}</div></div>`;document.getElementById("mfoot").innerHTML=`<button class="btn blue" onclick="closeModal()">關閉</button>`}
+function openExport(){shell("選擇匯出語系");document.getElementById("mbody").innerHTML=`<div class="note">每個語系會各自匯出一份 Excel 檔，且只匯出左側有勾選的字串。格式為：原文內容 / 語系欄位 / 狀態。</div><div style="margin-top:14px;display:grid;gap:10px">${languages.map(l=>`<label style="font-weight:700"><input type="checkbox" class="exportLang" value="${l}" checked> ${l}</label>`).join("")}</div><div class="filehint">範例：左側勾選 3 筆資料並選 en，會匯出「日期_上_en.xls」，內容欄位為「原文內容 / en / 狀態」，且只包含這 3 筆資料。選 en、ja 則會匯出兩份檔案。</div>`;document.getElementById("mfoot").innerHTML=`<button class="btn" onclick="closeModal()">取消</button><button class="btn green" onclick="exportLangs()">匯出</button>`}
+function escapeHtml(s){return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;")}
+function exportLangs(){
+  let chosen=[...document.querySelectorAll(".exportLang:checked")].map(x=>x.value);
+  if(!chosen.length){toast("請選擇匯出語系");return}
+
+  let selectedRows=rows.filter(r=>r.checked);
+  if(!selectedRows.length){toast("請先勾選要匯出的字串");return}
+
+  chosen.forEach(lang=>{
+    let table=`<table><tr><th>原文內容</th><th>${lang}</th><th>狀態</th></tr>`+
+      selectedRows.map(r=>`<tr><td>${escapeHtml(r.src)}</td><td>${escapeHtml(r.langs[lang].text||"")}</td><td>${escapeHtml(r.langs[lang].status||"")}</td></tr>`).join("")+
+      `</table>`;
+    let blob=new Blob(["\ufeff"+table],{type:"application/vnd.ms-excel;charset=utf-8"});
+    let a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download=todayName(lang);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+  });
+
+  closeModal();
+  toast(`已匯出 ${chosen.length} 份 Excel，共 ${selectedRows.length} 筆字串`);
+}
+function openImport(){shell("匯入翻譯資料",true);document.getElementById("mbody").innerHTML=`<div class="note">請先選擇本次要匯入的語系，再上傳對應語系檔案。檔案欄位需為「原文內容 / 語系 / 狀態」，例如匯入 en 時，檔案欄位為「原文內容 / en / 狀態」。</div><div class="form" style="margin-top:14px"><div class="fr"><label>匯入語系</label><select id="importLang" style="width:100%;height:38px;border:1px solid #cfd6df;border-radius:4px;background:#fff;padding:0 10px"><option value="">請選擇匯入語系</option><option value="en">en</option><option value="ja">ja</option><option value="vi">vi</option></select></div><div class="fr"><label>匯入檔案</label><div><input id="importFiles" type="file" accept=".xls,.csv,.txt,.html"><div class="filehint">一次匯入一個語系檔案。匯入後，符合原文內容的資料會更新為所選語系翻譯，狀態會改為「本地化」。</div></div></div></div>`;document.getElementById("mfoot").innerHTML=`<button class="btn" onclick="closeModal()">取消</button><button class="btn green" onclick="importFiles()">匯入</button>`}
+function parseImportedText(text){
+  if(/<tr[\s>]/i.test(text)){
+    let rows=[];
+    let trMatches=text.match(/<tr[\s\S]*?<\/tr>/gi)||[];
+    trMatches.forEach(tr=>{
+      let cells=[];
+      let cellMatches=tr.match(/<t[dh][\s\S]*?<\/t[dh]>/gi)||[];
+      cellMatches.forEach(cell=>{
+        let clean=cell
+          .replace(/<br\s*\/?>/gi,"\n")
+          .replace(/<[^>]+>/g,"")
+          .replace(/&amp;/g,"&")
+          .replace(/&lt;/g,"<")
+          .replace(/&gt;/g,">")
+          .replace(/&quot;/g,'"')
+          .replace(/&#39;/g,"'")
+          .trim();
+        cells.push(clean);
+      });
+      if(cells.length) rows.push(cells);
+    });
+    return rows;
+  }
+  let lines=text.replace(/\r/g,"").split("\n").map(x=>x.trim()).filter(Boolean);
+  return lines.map(line=>line.split(/\t|,/).map(x=>x.trim()));
+}
+async function importFiles(){
+  let lang=document.getElementById("importLang").value;
+  if(!lang){toast("請先選擇匯入語系");return}
+  let files=[...document.getElementById("importFiles").files];
+  if(!files.length){toast("請先選擇匯入檔案");return}
+
+  let file=files[0];
+  let text=await file.text();
+  let table=parseImportedText(text);
+
+  let updated=0,skipped=0;
+  let canCount=table.length>1;
+
+  table.slice(1).forEach(cols=>{
+    if(cols.length<2){skipped++;return}
+    let srcText=(cols[0]||"").trim();
+    let trans=(cols[1]||"").trim();
+    let row=rows.find(r=>r.src.trim()===srcText);
+    if(row&&row.langs[lang]){
+      row.langs[lang].text=trans||"—";
+      row.langs[lang].status="本地化";
+      touch(row,lang);
+      updated++;
+    }else{
+      skipped++;
+    }
+  });
+
+  closeModal();
+  render();
+  shell("匯入結果");
+  let countBlock=canCount
+    ?`<div class="result-card" style="text-align:center;margin:14px auto 0;max-width:260px"><div>匯入後狀態更新筆數</div><div class="num" style="color:#2563eb">${updated}</div></div><div class="note" style="margin-top:16px">已依所選語系匯入，成功對應的資料狀態已更新為「本地化」。略過筆數：${skipped}</div>`
+    :`<div class="note" style="margin-top:16px">匯入成功。</div>`;
+  document.getElementById("mbody").innerHTML=`<div style="font-size:28px;font-weight:700;color:#16a34a;text-align:center;margin-bottom:20px">✓ 匯入成功</div><div class="result-card" style="text-align:center;margin:0 auto;max-width:260px"><div>匯入語系</div><div class="num" style="color:#2563eb">${lang}</div></div>${countBlock}`;
+  document.getElementById("mfoot").innerHTML=`<button class="btn blue" onclick="closeModal()">確認</button>`;
+}
+renderStatusFilter();render();
+</script>
+</body>
+</html>
